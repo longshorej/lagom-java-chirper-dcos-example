@@ -24,11 +24,13 @@ lazy val friendApi = project("friend-api")
 lazy val friendImpl = project("friend-impl")
   .enablePlugins(LagomJava)
   .settings(
+    resolvers += bintrayRepo("hajile", "maven"),
     resolvers += bintrayRepo("hseeberger", "maven"),
     libraryDependencies ++= Seq(
       lagomJavadslPersistenceCassandra,
       lagomJavadslTestKit,
-      "com.lightbend.constructr" %% "constructr-coordination-zookeeper" % "0.4.1"
+      "com.lightbend.constructr" %% "constructr-coordination-zookeeper" % "0.4.1",
+      "com.lightbend" %% "lagom13-java-service-locator-dns"  % "2.2.2"
     ),
     version in Docker := buildVersion,
     dockerBaseImage := "openjdk:8-jre-alpine",
@@ -56,12 +58,14 @@ lazy val chirpApi = project("chirp-api")
 lazy val chirpImpl = project("chirp-impl")
   .enablePlugins(LagomJava)
   .settings(
+    resolvers += bintrayRepo("hajile", "maven"),
     resolvers += bintrayRepo("hseeberger", "maven"),
     libraryDependencies ++= Seq(
       lagomJavadslPersistenceCassandra,
       lagomJavadslPubSub,
       lagomJavadslTestKit,
-      "com.lightbend.constructr" %% "constructr-coordination-zookeeper" % "0.4.1"
+      "com.lightbend.constructr" %% "constructr-coordination-zookeeper" % "0.4.1",
+      "com.lightbend" %% "lagom13-java-service-locator-dns" % "2.2.2"
     ),
     dockerBaseImage := "openjdk:8-jre-alpine",
     dockerRepository := Some("chirper"),
@@ -87,9 +91,11 @@ lazy val activityStreamApi = project("activity-stream-api")
 lazy val activityStreamImpl = project("activity-stream-impl")
   .enablePlugins(LagomJava)
   .settings(
+    resolvers += bintrayRepo("hajile", "maven"),
     libraryDependencies ++= Seq(
       lagomJavadslCluster,
-      lagomJavadslTestKit
+      lagomJavadslTestKit,
+      "com.lightbend" %% "lagom13-java-service-locator-dns" % "2.2.2"
     ),
     dockerBaseImage := "openjdk:8-jre-alpine",
     dockerRepository := Some("chirper"),
