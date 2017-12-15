@@ -1,5 +1,6 @@
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
+import sbt.Resolver.bintrayRepo
 
 organization in ThisBuild := "com.lightbend.lagom.sample.chirper"
 
@@ -22,9 +23,11 @@ lazy val friendApi = project("friend-api")
 lazy val friendImpl = project("friend-impl")
   .enablePlugins(LagomJava)
   .settings(
+    resolvers += bintrayRepo("hseeberger", "maven"),
     libraryDependencies ++= Seq(
       lagomJavadslPersistenceCassandra,
-      lagomJavadslTestKit
+      lagomJavadslTestKit,
+      "com.lightbend.constructr" %% "constructr-coordination-zookeeper" % "0.4.1"
     )
   )
   .settings(lagomForkedTestSettings: _*)
@@ -41,10 +44,12 @@ lazy val chirpApi = project("chirp-api")
 lazy val chirpImpl = project("chirp-impl")
   .enablePlugins(LagomJava)
   .settings(
+    resolvers += bintrayRepo("hseeberger", "maven"),
     libraryDependencies ++= Seq(
       lagomJavadslPersistenceCassandra,
       lagomJavadslPubSub,
-      lagomJavadslTestKit
+      lagomJavadslTestKit,
+      "com.lightbend.constructr" %% "constructr-coordination-zookeeper" % "0.4.1"
     )
   )
   .settings(lagomForkedTestSettings: _*)
