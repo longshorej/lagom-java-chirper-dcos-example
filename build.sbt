@@ -1,3 +1,4 @@
+import com.typesafe.sbt.packager.docker._
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 import sbt.Resolver.bintrayRepo
@@ -28,7 +29,18 @@ lazy val friendImpl = project("friend-impl")
       lagomJavadslPersistenceCassandra,
       lagomJavadslTestKit,
       "com.lightbend.constructr" %% "constructr-coordination-zookeeper" % "0.4.1"
-    )
+    ),
+    version in Docker := buildVersion,
+    dockerBaseImage := "openjdk:8-jre-alpine",
+    dockerRepository := Some("chirper"),
+    dockerUpdateLatest := true,
+    dockerEntrypoint ++= """-Dhttp.address="$(eval "echo $FRIENDSERVICE_BIND_IP")" -Dhttp.port="$(eval "echo $FRIENDSERVICE_BIND_PORT")" -Dakka.remote.netty.tcp.hostname="$(eval "echo $AKKA_REMOTING_HOST")" -Dakka.remote.netty.tcp.bind-hostname="$(eval "echo $AKKA_REMOTING_BIND_HOST")" -Dakka.remote.netty.tcp.port="$(eval "echo $AKKA_REMOTING_PORT")" -Dakka.remote.netty.tcp.bind-port="$(eval "echo $AKKA_REMOTING_BIND_PORT")"""".split(" ").toSeq,
+    dockerCommands :=
+      dockerCommands.value.flatMap {
+        case ExecCmd("ENTRYPOINT", args @ _*) => Seq(Cmd("ENTRYPOINT", args.mkString(" ")))
+        case c @ Cmd("FROM", _) => Seq(c, ExecCmd("RUN", "/bin/sh", "-c", "apk add --no-cache bash && ln -sf /bin/bash /bin/sh"))
+        case v => Seq(v)
+      }
   )
   .settings(lagomForkedTestSettings: _*)
   .dependsOn(friendApi)
@@ -50,7 +62,17 @@ lazy val chirpImpl = project("chirp-impl")
       lagomJavadslPubSub,
       lagomJavadslTestKit,
       "com.lightbend.constructr" %% "constructr-coordination-zookeeper" % "0.4.1"
-    )
+    ),
+    dockerBaseImage := "openjdk:8-jre-alpine",
+    dockerRepository := Some("chirper"),
+    dockerUpdateLatest := true,
+    dockerEntrypoint ++= """-Dhttp.address="$(eval "echo $CHIRPSERVICE_BIND_IP")" -Dhttp.port="$(eval "echo $CHIRPSERVICE_BIND_PORT")" -Dakka.remote.netty.tcp.hostname="$(eval "echo $AKKA_REMOTING_HOST")" -Dakka.remote.netty.tcp.bind-hostname="$(eval "echo $AKKA_REMOTING_BIND_HOST")" -Dakka.remote.netty.tcp.port="$(eval "echo $AKKA_REMOTING_PORT")" -Dakka.remote.netty.tcp.bind-port="$(eval "echo $AKKA_REMOTING_BIND_PORT")" $(IFS=','; I=0; for NODE in $AKKA_SEED_NODES; do echo "-Dakka.cluster.seed-nodes.$I=akka.tcp://chirpservice@$NODE"; I=$(expr $I + 1); done)""".split(" ").toSeq,
+    dockerCommands :=
+      dockerCommands.value.flatMap {
+        case ExecCmd("ENTRYPOINT", args @ _*) => Seq(Cmd("ENTRYPOINT", args.mkString(" ")))
+        case c @ Cmd("FROM", _) => Seq(c, ExecCmd("RUN", "/bin/sh", "-c", "apk add --no-cache bash && ln -sf /bin/bash /bin/sh"))
+        case v => Seq(v)
+      }
   )
   .settings(lagomForkedTestSettings: _*)
   .dependsOn(chirpApi)
@@ -68,7 +90,17 @@ lazy val activityStreamImpl = project("activity-stream-impl")
     libraryDependencies ++= Seq(
       lagomJavadslCluster,
       lagomJavadslTestKit
-    )
+    ),
+    dockerBaseImage := "openjdk:8-jre-alpine",
+    dockerRepository := Some("chirper"),
+    dockerUpdateLatest := true,
+    dockerEntrypoint ++= """-Dhttp.address="$(eval "echo $ACTIVITYSERVICE_BIND_IP")" -Dhttp.port="$(eval "echo $ACTIVITYSERVICE_BIND_PORT")"""".split(" ").toSeq,
+    dockerCommands :=
+      dockerCommands.value.flatMap {
+        case ExecCmd("ENTRYPOINT", args @ _*) => Seq(Cmd("ENTRYPOINT", args.mkString(" ")))
+        case c @ Cmd("FROM", _) => Seq(c, ExecCmd("RUN", "/bin/sh", "-c", "apk add --no-cache bash && ln -sf /bin/bash /bin/sh"))
+        case v => Seq(v)
+      }
   )
   .dependsOn(activityStreamApi, chirpApi, friendApi)
 
@@ -115,7 +147,19 @@ lazy val frontEnd = project("front-end")
     WebpackKeys.envVars in webpack += "BUILD_SYSTEM" -> "sbt",
 
     // Remove to use Scala IDE
-    EclipseKeys.createSrc := EclipseCreateSrc.ValueSet(EclipseCreateSrc.ManagedClasses, EclipseCreateSrc.ManagedResources)
+    EclipseKeys.createSrc := EclipseCreateSrc.ValueSet(EclipseCreateSrc.ManagedClasses, EclipseCreateSrc.ManagedResources),
+
+
+    dockerBaseImage := "openjdk:8-jre-alpine",
+    dockerRepository := Some("chirper"),
+    dockerUpdateLatest := true,
+    dockerEntrypoint ++= """-Dhttp.address="$(eval "echo $WEB_BIND_IP")" -Dhttp.port="$(eval "echo $WEB_BIND_PORT")"""".split(" ").toSeq,
+    dockerCommands :=
+      dockerCommands.value.flatMap {
+        case ExecCmd("ENTRYPOINT", args @ _*) => Seq(Cmd("ENTRYPOINT", args.mkString(" ")))
+        case c @ Cmd("FROM", _) => Seq(c, ExecCmd("RUN", "/bin/sh", "-c", "apk add --no-cache bash && ln -sf /bin/bash /bin/sh"))
+        case v => Seq(v)
+      }
   )
 
 lazy val loadTestApi = project("load-test-api")
